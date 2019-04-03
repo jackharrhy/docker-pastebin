@@ -15,7 +15,7 @@ use rocket::response::content;
 
 use paste_id::PasteID;
 
-const ID_LENGTH: usize = 4;
+const ID_LENGTH: usize = 8;
 
 #[post("/", data = "<paste>")]
 fn upload(paste: Data) -> io::Result<String> {
