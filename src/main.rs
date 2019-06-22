@@ -10,20 +10,44 @@ use std::io;
 use std::fs::File;
 use std::path::Path;
 
+use rocket::Outcome;
 use rocket::Data;
+use rocket::http::Status;
+use rocket::request::{self, Request, FromRequest};
 use rocket::response::content;
 
 use paste_id::PasteID;
 
 const ID_LENGTH: usize = 8;
 
-#[post("/", data = "<paste>")]
-fn upload(paste: Data) -> io::Result<String> {
+struct ContentType(String);
+
+#[derive(Debug)]
+enum ContentTypeError {
+    Invalid,
+}
+
+impl<'a, 'r> FromRequest<'a, 'r> for ContentType {
+    type Error = ContentTypeError;
+
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+        let keys: Vec<_> = request.headers().get("ContentType").collect();
+        match keys.len() {
+            0 => Outcome::Success(ContentType("text/plain".to_string())),
+            1 => Outcome::Success(ContentType(keys[0].to_string())),
+            _ => Outcome::Failure((Status::BadRequest, ContentTypeError::Invalid)),
+        }
+    }
+}
+
+#[post("/", data = "<data>")]
+fn upload(data: Data, content_type: ContentType) -> io::Result<String> {
+    println!("Got ContentType of: {}", content_type.0);
     let id = PasteID::new(ID_LENGTH);
     let filename = format!("upload/{id}", id = id);
     let url = format!("{id}\n", id = id);
 
-    paste.stream_to_file(Path::new(&filename))?;
+    data.stream_to_file(Path::new(&filename))?;
     Ok(url)
 }
 
