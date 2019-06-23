@@ -4,4 +4,4 @@
 
 A minimal pastebin webapp written in rust, taken from the examples found in [Rocket](https://rocket.rs).
 
-Credit for the code goes to [Sergio Benitez](https://github.com/SergioBenitez/) :)
+Credit for the initial code goes to [Sergio Benitez](https://github.com/SergioBenitez/) :)
