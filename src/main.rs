@@ -40,7 +40,7 @@ fn upload(data: Data, content_type: &ContentType) -> io::Result<String> {
     let mut metadata_file = File::create(format!("upload/{id}.metadata.json", id = id))?;
     let metadata = Metadata {
         content_type: content_type,
-        time_stamp: SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap(),
+        time_stamp: Some(SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap()),
     };
     metadata_file.write_all(serde_json::to_string(&metadata).unwrap().as_bytes())?;
 
@@ -51,7 +51,7 @@ fn upload(data: Data, content_type: &ContentType) -> io::Result<String> {
 #[derive(Serialize, Deserialize, Debug)]
 struct Metadata {
     content_type: String,
-    time_stamp: u64,
+    time_stamp: Option<u64>,
 }
 
 #[get("/<id>")]
@@ -70,7 +70,7 @@ fn retrieve(id: PasteID) -> Option<Content<File>> {
     let metadata: Metadata = match serde_json::from_str(&metadata_serialized) {
         Err(_) => Metadata {
             content_type: "text/plain".to_string(),
-            time_stamp: 0,
+            time_stamp: None,
         },
         Ok(md) => md,
     };
